@@ -31,35 +31,45 @@ const Player = (name, sign) => {
 const displayController = (() => {
     const fields = document.querySelectorAll('.field');
     const resetButton = document.querySelector('.reset-button');
+    const message = document.querySelector('.message');
 
     const updateBoard = () => {
         for (let i = 0; i < fields.length; i++)
             fields[i].textContent = gameBoard.getField(i);
     };
 
+    const updateMessage = (showMessage) => {
+        message.textContent = showMessage;
+    }
+
     const resetBoard = () => {
         gameBoard.resetBoard();
         updateBoard();
+        gameController.resetBoard();
+        updateMessage(`Player X's turn`);
     };
 
     fields.forEach(field => {
         field.addEventListener('click', function(evt) {
             let index = Number(evt.target.dataset.index);
+            if (gameController.isOver() || evt.target.textContent !== '') return;
             gameController.playGame(index);
             if (gameController.isOver()) {
-                if (gameController.isGameDraw())
+                if (gameController.isGameDraw()) {
                     console.log('Game Draw');
-                else
+                    updateMessage('Game Draw');
+                }
+                else {
                     console.log(`${gameController.getPlayer().getName()} is winner`);
-
-                gameController.resetBoard();
+                    updateMessage(`Player ${gameController.getPlayer().getSign()} is winner`)
+                }
             }
         });
     });
 
     resetButton.addEventListener('click', resetBoard);
 
-    return { updateBoard, resetBoard }
+    return { updateBoard, resetBoard, updateMessage }
 })();
 
 const gameController = (() => {
@@ -83,6 +93,7 @@ const gameController = (() => {
         }
 
         player = player === player1 ? player2 : player1;
+        displayController.updateMessage(`Player ${player.getSign()}'s turn.`);
     };
 
     const checkDraw = () => {
@@ -119,7 +130,6 @@ const gameController = (() => {
         player = player1;
         gameOver = false;
         isDraw = false;
-        displayController.resetBoard();
     }
     
     return { playGame, isOver, isGameDraw, getPlayer, resetBoard }
